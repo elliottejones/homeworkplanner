@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -10,9 +11,9 @@ using System.Threading.Tasks;
 
 namespace HomeworkPlanner
 {
-    internal class Program
+    internal class Program // the comments are here you just have to look carefully
     {
-        public class homework // class for storing item data in objects 
+        public class homework
         {
             public string title { get; set; }
             public string description { get; set; }
@@ -180,10 +181,12 @@ namespace HomeworkPlanner
             Console.WriteLine("");
             Console.WriteLine("Press Y to confirm, or any other key to cancel.");
 
+            List<homework> idSort = homeworkList.OrderBy(x => x.iD).ToList();
+            int lastID = idSort[0].iD;
             char input = Console.ReadKey().KeyChar;
             if (input == 'y')
             {
-                homework newHW = new homework(name, desc, due, false);
+                homework newHW = new homework(name, desc, due, false, lastID);
                 homeworkList.Add(newHW);
                 return;
             }
@@ -195,6 +198,7 @@ namespace HomeworkPlanner
 
         static void editHomework()
         {
+            Console.Clear();
             Console.WriteLine("########################################");
             Console.WriteLine("");
             Console.WriteLine("             Edit Homework");
@@ -204,8 +208,128 @@ namespace HomeworkPlanner
             Console.WriteLine("Enter ID Of Homework To Edit.");
             foreach (homework homework in homeworkList)
             {
-                Console.WriteLine(homework.title + " " + homework.);
+                Console.WriteLine ("[" + homework.iD + "]  - " + homework.title );
             }
+
+            homework found = null;
+
+            while (true)
+            {
+                try
+                {
+                    int input = int.Parse(Console.ReadKey().KeyChar.ToString());
+                    homework foundElement = homeworkList.FirstOrDefault(x => x.iD == input);
+                    if (foundElement != null)
+                    {
+                        found = foundElement;
+                        break;
+                    }
+                    else
+                    {
+                        Console.WriteLine("Input error. Try again.");
+                    }
+                }
+                catch
+                {
+                    Console.WriteLine("Input error. Try again.");
+                    Console.WriteLine("");
+                }
+            }
+
+            Console.WriteLine("");
+            Console.WriteLine("Select attribute to edit for " + found.title + ".");
+            Console.WriteLine("");
+            Console.WriteLine("[1] Title");
+            Console.WriteLine("[2] Description");
+            Console.WriteLine("[3] Due Date");
+            Console.WriteLine("[4] Mark As Done");
+            Console.WriteLine("[5] Delete");
+            Console.WriteLine("");
+
+            char input2;
+
+            while (true)
+            {
+                input2 = Console.ReadKey().KeyChar;
+
+                Console.WriteLine("");
+
+                if (input2 == '1' || input2 == '2' || input2 == '3' || input2 == '4' || input2 == '5')
+                {
+                    break;
+                }
+                else
+                {
+                    Console.WriteLine("Input error. Please try again.");
+                }
+            }
+
+            switch (input2)
+            {
+                case '1':
+                    Console.WriteLine("Enter new title");
+                    string newTitle = Console.ReadLine();
+                    found.title = newTitle;
+                    break;
+
+                case '2':
+                    Console.WriteLine("Enter new description");
+                    string newDesc = Console.ReadLine();
+                    found.description = newDesc;
+                    break;
+
+                case '3':
+                    Console.WriteLine("Enter new due date");
+                    DateTime due;
+                    while (true)
+                    {
+                        try
+                        {
+                            due = DateTime.ParseExact(Console.ReadLine(), "dd/MM/yyyy", new CultureInfo("en-UK"));
+                            if (due > DateTime.Today)
+                            {
+                                break;
+                            }
+                            else
+                            {
+                                Console.WriteLine("Date must be in future.");
+                            }
+                        }
+                        catch
+                        {
+                            Console.WriteLine("Incorrect format");
+                        }
+                    }
+                    found.dueDate = due;
+                    Console.WriteLine("Due date changed!");
+                    break;
+
+                case '4':
+                    if (found.isDone)
+                    {
+                        Console.WriteLine("Homework is already completed. Press Y to mark as incomplete.");
+                        char input = Console.ReadKey().KeyChar;
+
+                        if (input == 'y')
+                        {
+                            found.isDone = false;
+                        }
+                    }
+                    else
+                    {
+                        found.isDone = true;
+                        Console.WriteLine("Homework marked as completed!");
+                    }
+                    break;
+
+                case '5':
+
+                    homeworkList.RemoveAll(x => x.iD == found.iD);
+                    Console.WriteLine("Homework Removed.");
+                    break;
+
+            }
+            Console.ReadKey();
         }
 
         static void exit()
